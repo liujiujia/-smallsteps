@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeeplus.modules.oldnew.dao.requestinfo.RequestInfoDao">
+    
+	<sql id="requestInfoColumns">
+		a.id AS "id",
+		a.pulisher_id AS "pulisherId",
+		a.nickname AS "nickname",
+		a.anchorLevelId AS "anchorLevelId",
+		a.platformcode AS "platformcode",
+		a.time_section AS "timeSection",
+		a.description AS "description",
+		a.del_flag AS "delFlag",
+		a.publishType AS "publishType"
+	</sql>
+	
+	<sql id="requestInfoJoins">
+	</sql>
+	
+	<select id="findRequestInfoList" resultType="hashMap" >
+		SELECT 
+			an.name AS "name",
+			an.sex AS "sex",
+			an.head_picture AS "headPicture",
+			a.nickname AS "nickname",
+			a.time_section AS "timeSection",
+			a.platformcode AS "platformcode",
+			a.description AS "description",
+			a.publishType AS "publishType",
+			l.min_fans_num AS "minFansNum",
+			l.max_fans_num AS "maxFansNum",
+			o.order_price AS "orderPrice",
+			o.id AS "orderId",
+			a.id AS "requestInfoId",
+			p.fans_amount AS "fansAccount",
+			an.mobile AS "mobile"
+			
+		FROM oldnew_request_info a 
+			LEFT JOIN oldnew_order o ON a.id = o.messageid
+			LEFT JOIN zhaomu_anchor_info an ON a.pulisher_id = an.user_id AND an.del_flag = 0
+			LEFT JOIN oldnew_anchor_level l ON a.anchorLevelId = l.id AND l.del_flag = 0
+			LEFT JOIN anchor_personal p ON a.pulisher_id = p.user_id
+			
+		WHERE a.del_flag = 0  AND o.status = #{2} and an.company = #{3} order by o.create_date DESC limit #{0},#{1}
+	</select>
+    
+	<select id="get" resultType="RequestInfo" >
+		SELECT 
+			<include refid="requestInfoColumns"/>
+		FROM oldnew_request_info a
+		<include refid="requestInfoJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="RequestInfo" >
+		SELECT 
+			<include refid="requestInfoColumns"/>
+		FROM oldnew_request_info a
+		<include refid="requestInfoJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="RequestInfo" >
+		SELECT 
+			<include refid="requestInfoColumns"/>
+		FROM oldnew_request_info a
+		<include refid="requestInfoJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO oldnew_request_info(
+			id,
+			pulisher_id,
+			nickname,
+			anchorLevelId,
+			platformcode,
+			time_section,
+			description,
+			del_flag,
+			publishType
+		) VALUES (
+			#{id},
+			#{pulisherId},
+			#{nickname},
+			#{anchorLevelId},
+			#{platformcode},
+			#{timeSection},
+			#{description},
+			#{delFlag},
+			#{publishType}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE oldnew_request_info SET 	
+			anchorLevelId = #{anchorLevelId},
+			platformcode = #{platformcode},
+			time_section = #{timeSection},
+			description = #{description},
+			publishType = #{publishType}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM oldnew_request_info
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE oldnew_request_info SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="RequestInfo" statementType="STATEMENT">
+		select * FROM oldnew_request_info  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

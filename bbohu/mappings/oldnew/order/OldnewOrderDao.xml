@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeeplus.modules.oldnew.dao.order.OldnewOrderDao">
+
+	<sql id="oldnewOrderColumns">
+		a.id AS "id",
+		a.order_code AS "orderCode",
+		a.order_price AS "orderPrice",
+		a.reduce_money AS "reduceMoney",
+		a.actual_money AS "actualMoney",
+		a.status AS "status",
+		a.messageid AS "messageid",
+		a.publisher_id AS "publisherId",
+		a.taker_id AS "takerId",
+		a.create_date AS "createDate",
+		a.receive_date AS "receiveDate",
+		a.affirm_date AS "affirmDate",
+		a.orger_type AS "orgerType",
+		a.over_date AS "overDate",
+		a.payment_status AS "paymentStatus",
+		z.nickname AS "publisherName",
+		m.nickname AS "takerName"
+	</sql>
+	<sql id="oldnewOrderColumns1">
+			a.id AS "id",
+		a.order_code AS "orderCode",
+		a.order_price AS "orderPrice",
+		a.reduce_money AS "reduceMoney",
+		a.actual_money AS "actualMoney",
+		a.status AS "status",
+		a.messageid AS "messageid",
+		a.publisher_id AS "publisherId",
+		a.taker_id AS "takerId",
+		a.create_date AS "createDate",
+		a.receive_date AS "receiveDate",
+		a.affirm_date AS "affirmDate",
+		a.orger_type AS "orgerType",
+		a.over_date AS "overDate",
+		a.payment_status AS "paymentStatus",
+		z.nickname AS "publisherName",
+		m.nickname AS "takerName",
+		i.starttime AS "starttime",
+		i.endtime	AS "endtime",
+		i.play_platform AS "platform",
+		r.description AS "remarks",
+		i.mobile AS "mobile"
+	</sql>
+	<sql id="oldnewOrderColumns3">
+			a.id AS "id",
+		a.order_code AS "orderCode",
+		a.order_price AS "orderPrice",
+		a.reduce_money AS "reduceMoney",
+		a.actual_money AS "actualMoney",
+		a.status AS "status",
+		a.messageid AS "messageid",
+		a.publisher_id AS "publisherId",
+		a.taker_id AS "takerId",
+		a.create_date AS "createDate",
+		a.receive_date AS "receiveDate",
+		a.affirm_date AS "affirmDate",
+		a.orger_type AS "orgerType",
+		a.over_date AS "overDate",
+		a.payment_status AS "paymentStatus",
+		z.nickname AS "publisherName",
+		m.nickname AS "takerName",
+		i.starttime AS "starttime",
+		i.endtime	AS "endtime",
+		i.play_platform AS "platform",
+		t.takedesc AS "description",
+		i.mobile AS "mobile"
+	</sql>
+	<sql id="oldnewOrderColumns2">
+		a.id AS "id",
+		a.order_code AS "orderCode",
+		a.order_price AS "orderPrice",
+		a.reduce_money AS "reduceMoney",
+		a.actual_money AS "actualMoney",
+		a.status AS "status",
+		a.messageid AS "messageid",
+		a.publisher_id AS "publisherId",
+		a.taker_id AS "takerId",
+		a.create_date AS "createDate",
+		a.receive_date AS "receiveDate",
+		a.affirm_date AS "affirmDate",
+		a.orger_type AS "orgerType",
+		a.over_date AS "overDate",
+		a.payment_status AS "paymentStatus",
+		z.nickname AS "publisherName",
+		i.starttime AS "starttime",
+		i.endtime	AS "endtime",
+		i.play_platform AS "platform",
+		r.description AS "remarks",
+		i.mobile AS "mobile"
+	</sql>
+	<sql id="oldnewOrderJoins">
+	</sql>
+	
+	
+	<select id="findById" resultType="OldnewOrder" >
+		SELECT * FROM oldnew_order WHERE id = #{id}
+	</select>
+	
+	<select id="getRecentOrder" resultType="OldnewOrder" >
+		SELECT * FROM oldnew_order WHERE publisher_id = #{0} order by create_date DESC limit 1
+	</select>
+	
+	<select id="getMaxOrderCode" resultType="long" >
+		SELECT max(order_code) FROM oldnew_order WHERE order_code > #{0}
+	</select>
+	<!-- 带人订单 -->
+	<select id="findtakeInfo" resultType="OldnewOrder">
+		SELECT 
+		<include refid="oldnewOrderColumns3" />
+		FROM oldnew_order a  
+		left join zhaomu_user z on a.publisher_id = z.id
+		left join zhaomu_user m on a.taker_id = m.id 
+		LEFT JOIN zhaomu_anchor_info i on a.publisher_id = i.user_id and i.del_flag = 0
+		LEFT JOIN oldnew_take_info t on a.messageid = t.id
+		where a.taker_id = #{userId} and a.status not in(1) ORDER BY a.create_date DESC
+	</select>
+	<select id="getTakeOrderById" resultType="OldnewOrder">
+		SELECT
+		<include refid="oldnewOrderColumns3" />
+		FROM oldnew_order a  
+		left join zhaomu_user z on a.publisher_id = z.id
+		left join zhaomu_user m on a.taker_id = m.id 
+		LEFT JOIN zhaomu_anchor_info i on a.publisher_id = i.user_id and i.del_flag = 0
+		LEFT JOIN oldnew_take_info t on a.messageid = t.id
+		where a.id = #{orderId}
+	</select>
+	<!-- 求带订单 -->
+	<select id="findRequestInfo" resultType="OldnewOrder">
+		SELECT
+		<include refid="oldnewOrderColumns1" />
+		FROM oldnew_order a  
+		left join zhaomu_user z on a.publisher_id = z.id
+		left join zhaomu_user m on a.taker_id = m.id 
+		LEFT JOIN zhaomu_anchor_info i on a.taker_id = i.user_id and i.del_flag = 0
+		LEFT JOIN oldnew_request_info r on a.messageid = r.id
+		where a.publisher_id = #{userId} ORDER BY a.create_date DESC
+	</select>
+	<!-- 没人接单只查自己信息 -->
+	<select id="getRequestOrderByZiji" resultType="OldnewOrder">
+		SELECT
+		<include refid="oldnewOrderColumns2" />
+		FROM oldnew_order a  
+		left join zhaomu_user z on a.publisher_id = z.id
+		LEFT JOIN zhaomu_anchor_info i on a.publisher_id = i.user_id and i.del_flag = 0
+		LEFT JOIN oldnew_request_info r on a.messageid = r.id
+		where a.id = #{orderId} ORDER BY a.create_date DESC
+	</select>
+	<select id="getRequestOrderById" resultType="OldnewOrder">
+		SELECT
+		<include refid="oldnewOrderColumns1" />
+		FROM oldnew_order a  
+		left join zhaomu_user z on a.publisher_id = z.id
+		left join zhaomu_user m on a.taker_id = m.id 
+		LEFT JOIN zhaomu_anchor_info i on a.taker_id = i.user_id and i.del_flag = 0
+		LEFT JOIN oldnew_request_info r on a.messageid = r.id
+		where a.id = #{orderId} 
+	</select>
+	<select id="get" resultType="OldnewOrder">
+		SELECT
+		<include refid="oldnewOrderColumns" />
+		FROM oldnew_order a 
+		left join zhaomu_user z on a.publisher_id = z.id
+		left join zhaomu_user m on a.taker_id = m.id
+		WHERE a.id = #{id}
+	</select>
+
+	<select id="findList" resultType="OldnewOrder">
+		SELECT
+		<include refid="oldnewOrderColumns" />
+		FROM oldnew_order a 
+		left join zhaomu_user z on a.publisher_id = z.id
+		left join zhaomu_user m on a.taker_id = m.id
+		left join zhaomu_anchor_info i on a.publisher_id = i.user_id and i.del_flag = 0 
+		left join sys_office office on i.company = office.id
+		<include refid="oldnewOrderJoins" />
+		<where>
+			<if test="publisherId != null and publisherId != ''">
+				a.publisher_id = #{publisherId}
+			</if>
+			<if test="takerId != null and takerId != ''">
+				and a.taker_id = #{takerId}
+			</if>
+			<if test="orderCode != null and orderCode != ''">
+				and a.order_code = #{orderCode}
+			</if>
+			<!-- 数据范围过滤 -->
+		    ${sqlMap.dsf}
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="findAllList" resultType="OldnewOrder">
+		SELECT
+		<include refid="oldnewOrderColumns" />
+		FROM oldnew_order a 
+		left join zhaomu_user z on a.publisher_id = z.id
+		left join zhaomu_user m on a.taker_id = m.id
+		<include refid="oldnewOrderJoins" />
+		<where>
+
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<insert id="insert">
+		INSERT INTO oldnew_order(
+		id,
+		order_code,
+		order_price,
+		reduce_money,
+		actual_money,
+		status,
+		messageid,
+		publisher_id,
+		taker_id,
+		create_date,
+		receive_date,
+		affirm_date,
+		orger_type,
+		over_date,
+		payment_status,
+		coupon_id
+		) VALUES (
+		#{id},
+		#{orderCode},
+		#{orderPrice},
+		#{reduceMoney},
+		#{actualMoney},
+		#{status},
+		#{messageid},
+		#{publisherId},
+		#{takerId},
+		#{createDate},
+		#{receiveDate},
+		#{affirmDate},
+		#{orgerType},
+		#{overDate},
+		#{paymentStatus},
+		#{couponId}
+		)
+	</insert>
+
+	<update id="update">
+		UPDATE oldnew_order SET
+		order_code = #{orderCode},
+		order_price = #{orderPrice},
+		reduce_money = #{reduceMoney},
+		actual_money = #{actualMoney},
+		status = #{status},
+		messageid = #{messageid},
+		publisher_id = #{publisherId},
+		taker_id = #{takerId},
+		create_date = #{createDate},
+		receive_date = #{receiveDate},
+		affirm_date = #{affirmDate},
+		orger_type = #{orgerType},
+		over_date = #{overDate},
+		payment_status = #{paymentStatus},
+		coupon_id = #{couponId}
+		WHERE id = #{id}
+	</update>
+
+
+	<!--物理删除 -->
+	<update id="delete">
+		DELETE FROM oldnew_order
+		WHERE id = #{id}
+	</update>
+
+	<!--逻辑删除 -->
+	<update id="deleteByLogic">
+		UPDATE oldnew_order SET
+		del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="OldnewOrder" statementType="STATEMENT">
+		select * FROM oldnew_order  where ${propertyName} = '${value}'
+	</select>
+	
+	<!-- 获取当月接单数 -->
+	<select id="getOrderNumByMonth" resultType="Integer">
+	    SELECT count(1)
+		FROM oldnew_order a
+		WHERE DATE_FORMAT(create_date, '%Y%m') = DATE_FORMAT(now(), '%Y%m')
+        AND (a.`status` = 1 OR a.`status` = 5 OR a.`status` = 6 OR a.`status` = 9 OR a.`status` = 11)
+		AND a.taker_id = #{0}
+	</select>
+	
+	<!-- 查找两人待付款的订单数 -->
+	<select id="getUnfinishedOrder" resultType="OldnewOrder">
+	    SELECT * 
+	    FROM
+			oldnew_order a
+		WHERE 
+		a.publisher_id = #{publisherId}
+		and a.taker_id = #{takerId}
+		and a.`status` = 1
+	</select>
+	
+
+</mapper>

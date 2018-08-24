@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeeplus.modules.oldnew.dao.config.AnchorLevelDao">
+    
+	<sql id="anchorLevelColumns">
+		a.id AS "id",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		a.name AS "name",
+		a.note AS "note",
+		a.min_fans_num AS "minFansNum",
+		a.max_fans_num AS "maxFansNum",
+		a.level AS "level",
+		a.take_price AS "takePrice",
+		a.take_num AS "takeNum"
+	</sql>
+	
+	<sql id="anchorLevelJoins">
+	</sql>
+	
+    
+	<select id="get" resultType="AnchorLevel" >
+		SELECT 
+			<include refid="anchorLevelColumns"/>
+		FROM oldnew_anchor_level a
+		<include refid="anchorLevelJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="AnchorLevel" >
+		SELECT 
+			<include refid="anchorLevelColumns"/>
+		FROM oldnew_anchor_level a
+		<include refid="anchorLevelJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="name != null and name != ''">
+				AND a.name = #{name}
+			</if>
+			<if test="takePrice != null and takePrice != ''">
+				AND a.take_price = #{takePrice}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.min_fans_num ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="AnchorLevel" >
+		SELECT 
+			<include refid="anchorLevelColumns"/>
+		FROM oldnew_anchor_level a
+		<include refid="anchorLevelJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO oldnew_anchor_level(
+			id,
+			create_by,
+			create_date,
+			remarks,
+			del_flag,
+			name,
+			note,
+			min_fans_num,
+			max_fans_num,
+			level,
+			take_price,
+			take_num
+		) VALUES (
+			#{id},
+			#{createBy.id},
+			#{createDate},
+			#{remarks},
+			#{delFlag},
+			#{name},
+			#{note},
+			#{minFansNum},
+			#{maxFansNum},
+			#{level},
+			#{takePrice},
+			#{takeNum}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE oldnew_anchor_level SET 	
+			remarks = #{remarks},
+			name = #{name},
+			note = #{note},
+			min_fans_num = #{minFansNum},
+			max_fans_num = #{maxFansNum},
+			level = #{level},
+			take_price = #{takePrice},
+			take_num = #{takeNum}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM oldnew_anchor_level
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE oldnew_anchor_level SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="AnchorLevel" statementType="STATEMENT">
+		select * FROM oldnew_anchor_level  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

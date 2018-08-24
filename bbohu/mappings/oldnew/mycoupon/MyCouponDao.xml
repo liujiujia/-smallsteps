@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeeplus.modules.oldnew.dao.mycoupon.MyCouponDao">
+    
+	<sql id="myCouponColumns">
+		a.id AS "id",
+		a.name AS "name",
+		a.price AS "price",
+		a.get_time AS "getime",
+		a.disable_date AS "disableDate",
+		a.status AS "status",
+		a.user_id AS "userId",
+		a.del_flag AS "delFlag",
+		a.remarks AS "remarks",
+		b.name AS "userName",
+		a.coupon_type AS "couponType"
+	</sql>
+	<sql id="couponColumns">
+		a.id AS "id",
+		a.name AS "name",
+		a.price AS "price",
+		a.get_time AS "getime",
+		a.disable_date AS "disableDate",
+		a.status AS "status",
+		a.user_id AS "userId",
+		a.del_flag AS "delFlag",
+		a.remarks AS "remarks",
+		a.coupon_type AS "couponType"
+	</sql>
+	
+	<sql id="myCouponJoins">
+	</sql>
+	
+    
+	<select id="get" resultType="MyCoupon" >
+		SELECT 
+			<include refid="couponColumns"/>
+		FROM oldnew_my_coupon a
+		<include refid="myCouponJoins"/>
+		WHERE a.id = #{id} 
+	</select>
+	
+	<select id="findUseableByUser" resultType="MyCoupon" >
+		SELECT 
+			<include refid="couponColumns"/>
+		FROM oldnew_my_coupon a
+		WHERE a.del_flag = 0 AND a.user_id = #{0} AND a.status = #{1} AND a.coupon_type = #{2} AND CURDATE() &lt;= a.disable_date
+	</select>
+	
+	<select id="findList" resultType="MyCoupon" >
+		SELECT 
+			<include refid="myCouponColumns"/>
+		FROM oldnew_my_coupon a,zhaomu_anchor_info b
+		<include refid="myCouponJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL} and b.del_flag = '0' and a.user_id = b.user_id and b.company = #{company.id}
+		</where>
+		<if test="userId != null and userId != ''">
+		    AND a.user_id = #{userId}
+	    </if>
+	    <if test="status != null and status != ''">
+		    AND a.status = #{status}
+	    </if>	    
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MyCoupon" >
+		SELECT 
+			<include refid="myCouponColumns"/>
+		FROM oldnew_my_coupon a,zhaomu_anchor_info b
+		<include refid="myCouponJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL} and b.del_flag = '0' and a.user_id = b.user_id
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO oldnew_my_coupon(
+			id,
+			name,
+			price,
+			get_time,
+			disable_date,
+			status,
+			user_id,
+			del_flag,
+			remarks,
+			coupon_type
+		) VALUES (
+			#{id},
+			#{name},
+			#{price},
+			#{getime},
+			#{disableDate},
+			#{status},
+			#{userId},
+			#{delFlag},
+			#{remarks},
+			#{couponType}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE oldnew_my_coupon SET 	
+			name = #{name},
+			price = #{price},
+			get_time = #{getime},
+			disable_date = #{disableDate},
+			status = #{status},
+			user_id = #{userId},
+			remarks = #{remarks},
+			coupon_type = #{couponType}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM oldnew_my_coupon
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE oldnew_my_coupon SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MyCoupon" statementType="STATEMENT">
+		select * FROM oldnew_my_coupon  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

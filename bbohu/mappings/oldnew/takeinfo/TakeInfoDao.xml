@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeeplus.modules.oldnew.dao.takeinfo.TakeInfoDao">
+    
+	<sql id="takeInfoColumns">
+		a.id AS "id",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		a.pulisher_id AS "pulisherId",
+		a.nickname AS "nickname",
+		a.funs_num AS "funsNum",
+		a.platformcode AS "platformcode",
+		a.time_section AS "timeSection",
+		a.price AS "price",
+		a.takedesc AS "takedesc",
+		a.month_ordernum AS "monthOrdernum",
+		a.status AS "status",
+		a.publish_type AS "publishType"
+	</sql>
+	
+	<sql id="takeInfoJoins">
+	</sql>
+	
+    
+	<select id="get" resultType="TakeInfo" >
+		SELECT 
+			<include refid="takeInfoColumns"/>
+		FROM oldnew_take_info a
+		<include refid="takeInfoJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="TakeInfo" >
+		SELECT 
+			<include refid="takeInfoColumns"/>
+		FROM oldnew_take_info a
+		<include refid="takeInfoJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="TakeInfo" >
+		SELECT 
+			<include refid="takeInfoColumns"/>
+		FROM oldnew_take_info a
+		<include refid="takeInfoJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO oldnew_take_info(
+			id,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag,
+			pulisher_id,
+			nickname,
+			funs_num,
+			platformcode,
+			time_section,
+			price,
+			takedesc,
+			month_ordernum,
+			status,
+			publish_type
+		) VALUES (
+			#{id},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag},
+			#{pulisherId},
+			#{nickname},
+			#{funsNum},
+			#{platformcode},
+			#{timeSection},
+			#{price},
+			#{takedesc},
+			#{monthOrdernum},
+			#{status},
+			#{publishType}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE oldnew_take_info SET 	
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			pulisher_id = #{pulisherId},
+			nickname = #{nickname},
+			funs_num = #{funsNum},
+			platformcode = #{platformcode},
+			time_section = #{timeSection},
+			price = #{price},
+			takedesc = #{takedesc},
+			month_ordernum = #{monthOrdernum},
+			status = #{status},
+			publish_type = #{publishType}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM oldnew_take_info
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE oldnew_take_info SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="TakeInfo" statementType="STATEMENT">
+		select * FROM oldnew_take_info  where ${propertyName} = '${value}'
+	</select>
+	
+	<!-- 获取带人列表 -->
+	<select id="getTakeList" resultType="com.jeeplus.modules.api.model.TakeInfoModel">
+		select o.*,
+		a.fans_amount AS ownerFans,
+		z.head_picture AS headPicture,
+		z.sex AS sex,
+		z.`name` AS anchorName
+		from oldnew_take_info o,
+		zhaomu_anchor_info z,
+		anchor_personal a
+		where o.pulisher_id = z.user_id
+		and o.pulisher_id= a.user_id
+		and o.status = 1
+		and z.del_flag = '0'
+		and z.company = #{company}
+		limit #{start},#{num}
+	</select>
+	
+	<!-- 获取明星主播列表 -->
+	<select id="getStarList" resultType="com.jeeplus.modules.api.model.TakeInfoModel">
+		select o.*,
+		a.fans_amount AS ownerFans,
+		z.head_picture AS headPicture,
+		z.sex AS sex,
+		z.`name` AS anchorName
+		from oldnew_take_info o,
+		zhaomu_anchor_info z,
+		anchor_personal a
+		where o.pulisher_id = z.user_id
+		and o.pulisher_id= a.user_id
+		and z.del_flag = '0' 
+		and z.company = #{company}
+		and o.status = #{status}
+        and a.fans_amount &gt;= #{fansAmount}
+        order by a.fans_amount DESC
+        <if test="start != null and num != null">
+            limit #{start},#{num}
+        </if> 
+	</select>
+</mapper>
